@@ -8,7 +8,7 @@ contract RamaStaking {
   mapping(address => uint256) public stakingBalance;
   mapping(address => bool) public isStaking;
   mapping(address => uint256) public startTime;
-  mapping(address => uint256) public ayaaBalance;
+  mapping(address => uint256) public ramaBalance;
 
   IERC20 public daiToken;
   RamaToken public ramaToken;
@@ -32,7 +32,7 @@ contract RamaStaking {
 
     if (isStaking[msg.sender] == true) {
       uint256 toTransfer = getYieldTotal(msg.sender);
-      ayaaBalance[msg.sender] += toTransfer;
+      ramaBalance[msg.sender] += toTransfer;
     }
 
     daiToken.transferFrom(msg.sender, address(this), amount);
@@ -53,7 +53,7 @@ contract RamaStaking {
     amount = 0;
     stakingBalance[msg.sender] -= balToTransfer;
     daiToken.transfer(msg.sender, balToTransfer);
-    ayaaBalance[msg.sender] += yieldToTransfer;
+    ramaBalance[msg.sender] += yieldToTransfer;
     if (stakingBalance[msg.sender] == 0) {
       isStaking[msg.sender] = false;
     }
@@ -78,13 +78,13 @@ contract RamaStaking {
     uint256 toTransfer = getYieldTotal(msg.sender);
 
     require(
-      toTransfer > 0 || ayaaBalance[msg.sender] > 0,
+      toTransfer > 0 || ramaBalance[msg.sender] > 0,
       "Nothing to withdraw"
     );
 
-    if (ayaaBalance[msg.sender] != 0) {
-      uint256 oldBalance = ayaaBalance[msg.sender];
-      ayaaBalance[msg.sender] = 0;
+    if (ramaBalance[msg.sender] != 0) {
+      uint256 oldBalance = ramaBalance[msg.sender];
+      ramaBalance[msg.sender] = 0;
       toTransfer += oldBalance;
     }
 
