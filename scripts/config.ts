@@ -1,5 +1,5 @@
 type DeployParams = Array<string>;
 
 export const mainConfig: DeployParams = [
-  "0x95b58a6bff3d14b7db2f5cb5f0ad413dc2940658", // Dai rinkeby address
+  "0x83e556da6514325ee615ff868cd0d324856fa0cf", // Matic rinkeby address
 ];
