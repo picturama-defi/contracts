@@ -10,7 +10,7 @@ contract RamaStaking {
   mapping(address => uint256) public startTime;
   mapping(address => uint256) public ramaBalance;
 
-  IERC20 public daiToken;
+  IERC20 public maticToken;
   RamaToken public ramaToken;
 
   string public name = "Rama Staking";
@@ -19,14 +19,14 @@ contract RamaStaking {
   event Unstake(address indexed from, uint256 amount);
   event YieldWithdraw(address indexed to, uint256 amount);
 
-  constructor(IERC20 _daiToken, RamaToken _ramaToken) {
-    daiToken = _daiToken;
+  constructor(IERC20 _maticToken, RamaToken _ramaToken) {
+    maticToken = _maticToken;
     ramaToken = _ramaToken;
   }
 
-  function stakeDai(uint256 amount) public {
+  function stake(uint256 amount) public {
     require(
-      amount > 0 && daiToken.balanceOf(msg.sender) >= amount,
+      amount > 0 && maticToken.balanceOf(msg.sender) >= amount,
       "You cannot stake zero tokens"
     );
 
@@ -35,14 +35,14 @@ contract RamaStaking {
       ramaBalance[msg.sender] += toTransfer;
     }
 
-    daiToken.transferFrom(msg.sender, address(this), amount);
+    maticToken.transferFrom(msg.sender, address(this), amount);
     stakingBalance[msg.sender] += amount;
     startTime[msg.sender] = block.timestamp;
     isStaking[msg.sender] = true;
     emit Stake(msg.sender, amount);
   }
 
-  function unstakeDai(uint256 amount) public {
+  function unstake(uint256 amount) public {
     require(
       isStaking[msg.sender] = true && stakingBalance[msg.sender] >= amount,
       "Nothing to unstake"
@@ -52,7 +52,7 @@ contract RamaStaking {
     uint256 balToTransfer = amount;
     amount = 0;
     stakingBalance[msg.sender] -= balToTransfer;
-    daiToken.transfer(msg.sender, balToTransfer);
+    maticToken.transfer(msg.sender, balToTransfer);
     ramaBalance[msg.sender] += yieldToTransfer;
     if (stakingBalance[msg.sender] == 0) {
       isStaking[msg.sender] = false;

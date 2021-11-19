@@ -17,7 +17,7 @@ describe("RamaStaking Contract", () => {
   let nemohoes: SignerWithAddress;
 
   let ramaStaking: Contract;
-  let mockDai: Contract;
+  let mockMatic: Contract;
   let ramaToken: Contract;
 
   const daiAmount: BigNumber = ethers.utils.parseEther("25000");
@@ -29,20 +29,20 @@ describe("RamaStaking Contract", () => {
     [owner, jithin, sylvester, sanjay, hoyt, nemohoes] =
       await ethers.getSigners();
 
-    mockDai = await MockERC20.deploy("MockDai", "mDAI");
+    mockMatic = await MockERC20.deploy("MockMatic", "mMatic");
     ramaToken = await RamaToken.deploy();
 
     await Promise.all([
-      mockDai.mint(owner.address, daiAmount),
-      mockDai.mint(jithin.address, daiAmount),
-      mockDai.mint(sylvester.address, daiAmount),
-      mockDai.mint(sanjay.address, daiAmount),
-      mockDai.mint(hoyt.address, daiAmount),
-      mockDai.mint(nemohoes.address, daiAmount),
+      mockMatic.mint(owner.address, daiAmount),
+      mockMatic.mint(jithin.address, daiAmount),
+      mockMatic.mint(sylvester.address, daiAmount),
+      mockMatic.mint(sanjay.address, daiAmount),
+      mockMatic.mint(hoyt.address, daiAmount),
+      mockMatic.mint(nemohoes.address, daiAmount),
     ]);
 
     let ramaStakingParams: Array<string | BigNumber> = [
-      mockDai.address,
+      mockMatic.address,
       ramaToken.address,
     ];
     ramaStaking = await RamaStaking.deploy(...ramaStakingParams);
@@ -52,28 +52,28 @@ describe("RamaStaking Contract", () => {
     it("should deploy contracts", async () => {
       expect(ramaStaking).to.be.ok;
       expect(ramaToken).to.be.ok;
-      expect(mockDai).to.be.ok;
+      expect(mockMatic).to.be.ok;
     });
 
     it("should return name", async () => {
       expect(await ramaStaking.name()).to.eq("Rama Staking");
-      expect(await mockDai.name()).to.eq("MockDai");
+      expect(await mockMatic.name()).to.eq("MockMatic");
       expect(await ramaToken.name()).to.eq("RamaToken");
     });
 
     it("should show mockDai balance", async () => {
-      expect(await mockDai.balanceOf(owner.address)).to.eq(daiAmount);
+      expect(await mockMatic.balanceOf(owner.address)).to.eq(daiAmount);
     });
   });
 
   describe("Staking", async () => {
     it("should stake and update mapping", async () => {
       let toTransfer = ethers.utils.parseEther("100");
-      await mockDai.connect(jithin).approve(ramaStaking.address, toTransfer);
+      await mockMatic.connect(jithin).approve(ramaStaking.address, toTransfer);
 
       expect(await ramaStaking.isStaking(jithin.address)).to.eq(false);
 
-      expect(await ramaStaking.connect(jithin).stakeDai(toTransfer)).to.be.ok;
+      expect(await ramaStaking.connect(jithin).stake(toTransfer)).to.be.ok;
 
       expect(await ramaStaking.stakingBalance(jithin.address)).to.eq(
         toTransfer
@@ -83,35 +83,37 @@ describe("RamaStaking Contract", () => {
     });
 
     it("should remove dai from user", async () => {
-      res = await mockDai.balanceOf(jithin.address);
+      res = await mockMatic.balanceOf(jithin.address);
       expect(Number(res)).to.be.lessThan(Number(daiAmount));
     });
 
     it("should update balance with multiple stakes", async () => {
       let toTransfer = ethers.utils.parseEther("100");
-      await mockDai.connect(nemohoes).approve(ramaStaking.address, toTransfer);
-      await ramaStaking.connect(nemohoes).stakeDai(toTransfer);
+      await mockMatic
+        .connect(nemohoes)
+        .approve(ramaStaking.address, toTransfer);
+      await ramaStaking.connect(nemohoes).stake(toTransfer);
     });
 
     it("should revert stake with zero as staked amount", async () => {
-      await expect(
-        ramaStaking.connect(sylvester).stakeDai(0)
-      ).to.be.revertedWith("You cannot stake zero tokens");
+      await expect(ramaStaking.connect(sylvester).stake(0)).to.be.revertedWith(
+        "You cannot stake zero tokens"
+      );
     });
 
     it("should revert stake without allowance", async () => {
       let toTransfer = ethers.utils.parseEther("50");
       await expect(
-        ramaStaking.connect(sylvester).stakeDai(toTransfer)
+        ramaStaking.connect(sylvester).stake(toTransfer)
       ).to.be.revertedWith("transfer amount exceeds allowance");
     });
 
     it("should revert with not enough funds", async () => {
       let toTransfer = ethers.utils.parseEther("1000000");
-      await mockDai.approve(ramaStaking.address, toTransfer);
+      await mockMatic.approve(ramaStaking.address, toTransfer);
 
       await expect(
-        ramaStaking.connect(sylvester).stakeDai(toTransfer)
+        ramaStaking.connect(sylvester).stake(toTransfer)
       ).to.be.revertedWith("You cannot stake zero tokens");
     });
   });
@@ -121,7 +123,7 @@ describe("RamaStaking Contract", () => {
       expect(Number(res)).to.be.greaterThan(0);
 
       let toTransfer = ethers.utils.parseEther("100");
-      await ramaStaking.connect(jithin).unstakeDai(toTransfer);
+      await ramaStaking.connect(jithin).unstake(toTransfer);
       res = await ramaStaking.stakingBalance(jithin.address);
       expect(Number(res)).to.eq(0);
     });

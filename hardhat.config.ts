@@ -25,5 +25,9 @@ export default {
     ganache: {
       url: "http://127.0.0.1:8545",
     },
+    matic: {
+      url: process.env.MATIC_URL,
+      accounts: [process.env.MATIC_PRIVATE_KEY],
+    },
   },
 };

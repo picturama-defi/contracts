@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-describe("AyaaToken Contract", () => {
+describe("RamaToken Contract", () => {
   let owner: SignerWithAddress;
   let jithin: SignerWithAddress;
   let hoyt: SignerWithAddress;
