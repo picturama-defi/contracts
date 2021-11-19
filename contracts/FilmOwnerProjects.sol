@@ -106,7 +106,7 @@ contract FilmOwnerProjects {
         }
 
         require(
-            getTotalFundedAmount(id) + msg.value <
+            getTotalFundedAmount(id) + msg.value <=
                 filmIdToDetailsMapping[id].targetAmount,
             "Excess fund"
         );
