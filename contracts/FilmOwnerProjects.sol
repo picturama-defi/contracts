@@ -34,6 +34,8 @@ contract FilmOwnerProjects {
     // project id to project details mapping
     mapping(uint256 => FilmFundingDetails) public filmIdToDetailsMapping;
 
+    event AddFilm(address filmOwner, uint256 fundingGoal, uint256 id);
+
     // Adds a new film to the platform
     function addFilm(address filmOwnerAddress, uint256 fundingGoal) public {
         require(owner == msg.sender, "Unauthorised request");
@@ -50,6 +52,8 @@ contract FilmOwnerProjects {
             filmCount
         ];
         newFilmDetails.targetAmount = fundingGoal;
+
+        emit AddFilm(filmOwnerAddress, fundingGoal, filmCount);
     }
 
     // Add a new new film owner to the film owners list
@@ -102,7 +106,7 @@ contract FilmOwnerProjects {
         }
 
         require(
-            getTotalFundedAmount(id) + msg.value <
+            getTotalFundedAmount(id) + msg.value <=
                 filmIdToDetailsMapping[id].targetAmount,
             "Excess fund"
         );
