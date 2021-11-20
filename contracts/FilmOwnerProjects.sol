@@ -133,4 +133,21 @@ contract FilmOwnerProjects {
         }
         return totalFunded;
     }
+    
+    #Function to release profit to the film funders and film owner
+    function release(unit256 amount, uint256 id) public {
+        require(owner == msg.sender, "Unauthorised request");
+        unit256 profits;
+        unit25 ratio;
+        
+        #Calculate ratio funded between owners and funders
+        ratio = individual funded /getTotalFundedAmount(id)
+        
+        #Calculate profits
+        profits = 
+        
+        
+        #Release the profits
+        return profits;
+    }
 }
