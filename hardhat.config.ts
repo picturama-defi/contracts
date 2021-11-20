@@ -22,9 +22,9 @@ export default {
       url: process.env.RINKEBY_URL,
       accounts: [process.env.PRIVATE_KEY],
     },
-    ganache: {
-      url: process.env.GANCHE_URL,
-    },
+    // ganache: {
+    //   url: process.env.GANCHE_URL,
+    // },
     matic: {
       url: process.env.MATIC_URL,
       accounts: [process.env.MATIC_PRIVATE_KEY],

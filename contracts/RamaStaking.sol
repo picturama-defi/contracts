@@ -7,7 +7,7 @@ import "./RamaToken.sol";
 contract RamaStaking {
   mapping(address => uint256) public stakingBalance;
   mapping(address => bool) public isStaking;
-  mapping(address => uint256) public startTime;
+  mapping(address => uint256) public timeStaked;
   mapping(address => uint256) public ramaBalance;
 
   IERC20 public maticToken;
@@ -29,7 +29,6 @@ contract RamaStaking {
       amount > 0 && maticToken.balanceOf(msg.sender) >= amount,
       "You cannot stake zero tokens"
     );
-
     if (isStaking[msg.sender] == true) {
       uint256 toTransfer = getYieldTotal(msg.sender);
       ramaBalance[msg.sender] += toTransfer;
@@ -37,7 +36,7 @@ contract RamaStaking {
 
     maticToken.transferFrom(msg.sender, address(this), amount);
     stakingBalance[msg.sender] += amount;
-    startTime[msg.sender] = block.timestamp;
+    timeStaked[msg.sender] = block.timestamp;
     isStaking[msg.sender] = true;
     emit Stake(msg.sender, amount);
   }
@@ -48,27 +47,31 @@ contract RamaStaking {
       "Nothing to unstake"
     );
     uint256 yieldToTransfer = getYieldTotal(msg.sender);
-    startTime[msg.sender] = block.timestamp;
+    timeStaked[msg.sender] = block.timestamp;
     uint256 balToTransfer = amount;
-    amount = 0;
     stakingBalance[msg.sender] -= balToTransfer;
-    maticToken.transfer(msg.sender, balToTransfer);
+    require(
+      maticToken.balanceOf(address(this)) > balToTransfer,
+      "Contract not Funded"
+    );
+    require(maticToken.transfer(msg.sender, balToTransfer));
     ramaBalance[msg.sender] += yieldToTransfer;
     if (stakingBalance[msg.sender] == 0) {
       isStaking[msg.sender] = false;
+      timeStaked[msg.sender] = 0;
     }
     emit Unstake(msg.sender, balToTransfer);
   }
 
   function getYieldTime(address user) public view returns (uint256) {
     uint256 end = block.timestamp;
-    uint256 totalTime = end - startTime[user];
+    uint256 totalTime = end - timeStaked[user];
     return totalTime;
   }
 
   function getYieldTotal(address user) public view returns (uint256) {
     uint256 time = getYieldTime(user) * 10**18;
-    uint256 rate = 63072000;
+    uint256 rate = 86400;
     uint256 timeRate = time / rate;
     uint256 rawYield = (stakingBalance[user] * timeRate) / 10**18;
     return rawYield;
@@ -88,7 +91,7 @@ contract RamaStaking {
       toTransfer += oldBalance;
     }
 
-    startTime[msg.sender] = block.timestamp;
+    timeStaked[msg.sender] = block.timestamp;
     ramaToken.mint(msg.sender, toTransfer);
     emit YieldWithdraw(msg.sender, toTransfer);
   }
