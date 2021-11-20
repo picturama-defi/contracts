@@ -68,7 +68,7 @@ contract RamaStaking {
 
   function getYieldTotal(address user) public view returns (uint256) {
     uint256 time = getYieldTime(user) * 10**18;
-    uint256 rate = 86400;
+    uint256 rate = 63072000;
     uint256 timeRate = time / rate;
     uint256 rawYield = (stakingBalance[user] * timeRate) / 10**18;
     return rawYield;
