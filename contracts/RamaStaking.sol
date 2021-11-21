@@ -2,97 +2,150 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./RamaToken.sol";
 
-contract RamaStaking {
-  mapping(address => uint256) public stakingBalance;
-  mapping(address => bool) public isStaking;
+contract RamaStaking is Ownable {
+  // mapping token address -> staker address -> amount
+  mapping(address => mapping(address => uint256)) public stakingBalance;
+  mapping(address => uint256) public uniqueTokensStaked;
   mapping(address => uint256) public timeStaked;
   mapping(address => uint256) public ramaBalance;
+  mapping(address => address) public tokenPriceFeedMapping;
+  mapping(address => bool) public isStaking;
 
-  IERC20 public maticToken;
-  RamaToken public ramaToken;
+  address[] public stakers;
+  address[] public allowedTokens;
+
+  RamaToken ramaToken;
 
   string public name = "Rama Staking";
 
-  event Stake(address indexed from, uint256 amount);
-  event Unstake(address indexed from, uint256 amount);
-  event YieldWithdraw(address indexed to, uint256 amount);
+  event Stake(address indexed from, uint256 amount, address _token);
+  event Unstake(address indexed from, uint256 amount, address _token);
 
-  constructor(IERC20 _maticToken, RamaToken _ramaToken) {
-    maticToken = _maticToken;
+  constructor(RamaToken _ramaToken) {
     ramaToken = _ramaToken;
   }
 
-  function stake(uint256 amount) public {
+  function setPriceFeedContract(address _token, address _priceFeed)
+    public
+    onlyOwner
+  {
+    tokenPriceFeedMapping[_token] = _priceFeed;
+  }
+
+  function getTokenValue(address _token)
+    public
+    view
+    returns (uint256, uint256)
+  {
+    // priceFeedAddress
+    address priceFeedAddress = tokenPriceFeedMapping[_token];
+    AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeedAddress);
+    (, int256 price, , , ) = priceFeed.latestRoundData();
+    uint256 decimals = uint256(priceFeed.decimals());
+    return (uint256(price), decimals);
+  }
+
+  function addAllowedTokens(address _token) public onlyOwner {
+    allowedTokens.push(_token);
+  }
+
+  function tokenIsAllowed(address _token) public view returns (bool) {
+    for (
+      uint256 allowedTokensIndex = 0;
+      allowedTokensIndex < allowedTokens.length;
+      allowedTokensIndex++
+    ) {
+      if (allowedTokens[allowedTokensIndex] == _token) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function stakeTokens(uint256 _amount, address _token) public {
     require(
-      amount > 0 && maticToken.balanceOf(msg.sender) >= amount,
+      _amount > 0 && IERC20(_token).balanceOf(msg.sender) >= _amount,
       "You cannot stake zero tokens"
     );
-    if (isStaking[msg.sender] == true) {
-      uint256 toTransfer = getYieldTotal(msg.sender);
-      ramaBalance[msg.sender] += toTransfer;
-    }
+    require(
+      tokenIsAllowed(_token),
+      "Token is currently not allowed for staking in this platform"
+    );
 
-    maticToken.transferFrom(msg.sender, address(this), amount);
-    stakingBalance[msg.sender] += amount;
+    IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+    updateUniqueTokensStaked(msg.sender, _token);
+    stakingBalance[_token][msg.sender] =
+      stakingBalance[_token][msg.sender] +
+      _amount;
     timeStaked[msg.sender] = block.timestamp;
     isStaking[msg.sender] = true;
-    emit Stake(msg.sender, amount);
+    if (uniqueTokensStaked[msg.sender] == 1) {
+      stakers.push(msg.sender);
+    }
+    emit Stake(msg.sender, _amount, _token);
   }
 
-  function unstake(uint256 amount) public {
+  function updateUniqueTokensStaked(address _user, address _token) internal {
+    if (stakingBalance[_token][_user] <= 0) {
+      uniqueTokensStaked[_user] = uniqueTokensStaked[_user] + 1;
+    }
+  }
+
+  function issueRamaTokens() public onlyOwner {
+    // Issue tokens to all stakers
+    for (
+      uint256 stakersIndex = 0;
+      stakersIndex < stakers.length;
+      stakersIndex++
+    ) {
+      address recipient = stakers[stakersIndex];
+      uint256 userTotalValue = getUserTotalValue(recipient);
+      ramaToken.mint(msg.sender, userTotalValue);
+    }
+  }
+
+  function getUserTotalValue(address _user) public view returns (uint256) {
+    uint256 totalValue = 0;
+    require(uniqueTokensStaked[_user] > 0, "No tokens staked!");
+    for (
+      uint256 allowedTokensIndex = 0;
+      allowedTokensIndex < allowedTokens.length;
+      allowedTokensIndex++
+    ) {
+      totalValue =
+        totalValue +
+        getUserSingleTokenValue(_user, allowedTokens[allowedTokensIndex]);
+    }
+    return totalValue;
+  }
+
+  function getUserSingleTokenValue(address _user, address _token)
+    public
+    view
+    returns (uint256)
+  {
+    if (uniqueTokensStaked[_user] <= 0) {
+      return 0;
+    }
+    (uint256 price, uint256 decimals) = getTokenValue(_token);
+    return ((stakingBalance[_token][_user] * price) / (10**decimals));
+  }
+
+  function unstakeTokens(address _token) public {
+    require(isStaking[msg.sender] = true, "Nothing to unstake");
+    uint256 balToTransfer = stakingBalance[_token][msg.sender];
+    require(balToTransfer > 0, "Staking balance cannot be 0");
     require(
-      isStaking[msg.sender] = true && stakingBalance[msg.sender] >= amount,
-      "Nothing to unstake"
-    );
-    uint256 yieldToTransfer = getYieldTotal(msg.sender);
-    timeStaked[msg.sender] = block.timestamp;
-    uint256 balToTransfer = amount;
-    stakingBalance[msg.sender] -= balToTransfer;
-    require(
-      maticToken.balanceOf(address(this)) > balToTransfer,
+      IERC20(_token).balanceOf(address(this)) > balToTransfer,
       "Contract not Funded"
     );
-    require(maticToken.transfer(msg.sender, balToTransfer));
-    ramaBalance[msg.sender] += yieldToTransfer;
-    if (stakingBalance[msg.sender] == 0) {
-      isStaking[msg.sender] = false;
-      timeStaked[msg.sender] = 0;
-    }
-    emit Unstake(msg.sender, balToTransfer);
-  }
-
-  function getYieldTime(address user) public view returns (uint256) {
-    uint256 end = block.timestamp;
-    uint256 totalTime = end - timeStaked[user];
-    return totalTime;
-  }
-
-  function getYieldTotal(address user) public view returns (uint256) {
-    uint256 time = getYieldTime(user) * 10**18;
-    uint256 rate = 86400;
-    uint256 timeRate = time / rate;
-    uint256 rawYield = (stakingBalance[user] * timeRate) / 10**18;
-    return rawYield;
-  }
-
-  function withdrawYield() public {
-    uint256 toTransfer = getYieldTotal(msg.sender);
-
-    require(
-      toTransfer > 0 || ramaBalance[msg.sender] > 0,
-      "Nothing to withdraw"
-    );
-
-    if (ramaBalance[msg.sender] != 0) {
-      uint256 oldBalance = ramaBalance[msg.sender];
-      ramaBalance[msg.sender] = 0;
-      toTransfer += oldBalance;
-    }
-
-    timeStaked[msg.sender] = block.timestamp;
-    ramaToken.mint(msg.sender, toTransfer);
-    emit YieldWithdraw(msg.sender, toTransfer);
+    IERC20(_token).transfer(msg.sender, balToTransfer);
+    stakingBalance[_token][msg.sender] = 0;
+    uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
+    emit Unstake(msg.sender, balToTransfer, _token);
   }
 }

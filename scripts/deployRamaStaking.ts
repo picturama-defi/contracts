@@ -13,10 +13,7 @@ async function main() {
   console.log(`RamaToken address: ${ramaToken.address}`);
 
   const RamaStaking = await ethers.getContractFactory("RamaStaking");
-  const ramaStaking = await RamaStaking.deploy(
-    ...mainConfig,
-    ramaToken.address
-  );
+  const ramaStaking = await RamaStaking.deploy(ramaToken.address);
   console.log(`RamaFarm address: ${ramaStaking.address}`);
 
   const ramaMinter = await ramaToken.MINTER_ROLE();
