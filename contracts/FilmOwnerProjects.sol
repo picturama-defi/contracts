@@ -26,7 +26,7 @@ contract FilmOwnerProjects {
     }
 
     // Ids of all the films
-    bytes32[] filmIds;
+    bytes32[] public filmIds;
 
     struct FilmData {
         uint256 targetAmount;

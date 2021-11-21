@@ -22,6 +22,8 @@ describe("Film ownership tests", function () {
 
     const res = await ramaTokenContract.getAllProjects();
 
+    console.log(ethers.utils.formatBytes32String("id1"));
+
     expect(res[0]["targetAmount"].toString()).to.eq("1000");
     expect(res[0]["totalFunded"].toString()).to.eq("0");
     expect(ethers.utils.parseBytes32String(res[0]["id"])).to.eq("id1");
