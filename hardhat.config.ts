@@ -1,7 +1,6 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 require("dotenv").config();
-
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
@@ -18,16 +17,16 @@ export default {
     },
   },
   networks: {
-    rinkeby: {
-      url: process.env.RINKEBY_URL,
-      accounts: [process.env.PRIVATE_KEY],
-    },
-    // ganache: {
-    //   url: process.env.GANCHE_URL,
+    // rinkeby: {
+    //   url: process.env.RINKEBY_URL,
+    //   accounts: [process.env.PRIVATE_KEY],
     // },
-    matic: {
-      url: process.env.MATIC_URL,
-      accounts: [process.env.MATIC_PRIVATE_KEY],
-    },
+    // ganache: {
+    //   url: process.env.GANACHE_URL,
+    // },
+    // matic: {
+    //   url: process.env.MATIC_URL,
+    //   accounts: [process.env.MATIC_PRIVATE_KEY],
+    // },
   },
 };

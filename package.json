@@ -1,7 +1,8 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "deploy-ganache": " npx hardhat run --network ganache scripts/deployRamaStaking.ts"
+    "deploy": "npx hardhat run --network localhost scripts/deployRamaStaking.ts",
+    "node": "npx hardhat node"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
