@@ -32,6 +32,7 @@ contract FilmOwnerProjects {
         uint256 targetAmount;
         uint256 totalFunded;
         bytes32 id;
+        address[] funders;
     }
 
     // project id to project details mapping
@@ -94,7 +95,8 @@ contract FilmOwnerProjects {
             FilmData memory filmData = FilmData(
                 filmIdToDetailsMapping[filmIds[i]].targetAmount,
                 getTotalFundedAmount(filmIds[i]),
-                filmIds[i]
+                filmIds[i],
+                filmIdToDetailsMapping[filmIds[i]].funders
             );
             filmDataList[i] = filmData;
         }
