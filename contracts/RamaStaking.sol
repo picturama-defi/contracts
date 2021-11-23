@@ -18,15 +18,47 @@ contract RamaStaking is Ownable {
   address[] public stakers;
   address[] public allowedTokens;
 
+  // Address to that willh old stacked funds
+  address public stakedFundsTreasury;
+
+  // Staking threshold
+  uint256 public immutable stakingTreshold;
+  bool public completed;
+
   RamaToken ramaToken;
 
   string public name = "Rama Staking";
 
+  // Staking deadline
+  uint256 public deadline = block.timestamp + 63072000 seconds;
+
   event Stake(address indexed from, uint256 amount, address _token);
   event Unstake(address indexed from, uint256 amount, address _token);
 
-  constructor(RamaToken _ramaToken) {
+  // Contract's Modifiers
+  modifier deadlineReached(bool requireReached) {
+    uint256 timeRemaining = timeLeft();
+    if (requireReached) {
+      require(timeRemaining == 0, "Deadline is not reached yet");
+    } else {
+      require(timeRemaining > 0, "Deadline is already reached");
+    }
+    _;
+  }
+
+  modifier stakeNotCompleted() {
+    require(completed, "staking process already completed");
+    _;
+  }
+
+  constructor(
+    RamaToken _ramaToken,
+    uint256 _stakingTreshold,
+    address _stakeFundsTreasury
+  ) {
     ramaToken = _ramaToken;
+    stakingTreshold = _stakingTreshold;
+    stakedFundsTreasury = _stakeFundsTreasury;
   }
 
   function setPriceFeedContract(address _token, address _priceFeed)
@@ -66,7 +98,11 @@ contract RamaStaking is Ownable {
     return false;
   }
 
-  function stakeTokens(uint256 _amount, address _token) public {
+  function stakeTokens(uint256 _amount, address _token)
+    public
+    deadlineReached(false)
+    stakeNotCompleted
+  {
     require(
       _amount > 0 && IERC20(_token).balanceOf(msg.sender) >= _amount,
       "You cannot stake zero tokens"
@@ -95,7 +131,7 @@ contract RamaStaking is Ownable {
     }
   }
 
-  function issueRamaTokens() public onlyOwner {
+  function issueTokens() public onlyOwner {
     // Issue tokens to all stakers
     for (
       uint256 stakersIndex = 0;
@@ -135,7 +171,11 @@ contract RamaStaking is Ownable {
     return ((stakingBalance[_token][_user] * price) / (10**decimals));
   }
 
-  function unstakeTokens(address _token) public {
+  function unstakeTokens(address _token)
+    public
+    deadlineReached(false)
+    stakeNotCompleted
+  {
     require(isStaking[msg.sender] = true, "Nothing to unstake");
     uint256 balToTransfer = stakingBalance[_token][msg.sender];
     require(balToTransfer > 0, "Staking balance cannot be 0");
@@ -147,5 +187,45 @@ contract RamaStaking is Ownable {
     stakingBalance[_token][msg.sender] = 0;
     uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
     emit Unstake(msg.sender, balToTransfer, _token);
+  }
+
+  function withdrawTokensStaked(address _token)
+    public
+    deadlineReached(true)
+    stakeNotCompleted
+  {
+    uint256 userBalance = stakingBalance[_token][msg.sender];
+
+    // check if the user has balance to withdraw
+    require(userBalance > 0, "You don't have balance to withdraw");
+
+    // reset the balance of the user
+    stakingBalance[_token][msg.sender] = 0;
+
+    // Transfer balance back to the user
+    (bool sent, ) = msg.sender.call{ value: userBalance }("");
+    require(sent, "Failed to send user balance back to the user");
+  }
+
+  function transferFundsToTreasury() public deadlineReached(false) onlyOwner {
+    require(!completed, "staking process not yet completed");
+    uint256 contractBalance = address(this).balance;
+
+    // check the contract has enough ETH to reach the treshold
+    require(contractBalance >= stakingTreshold, "Threshold not reached");
+
+    //transfer all the balance to the stakedFundsTreasury  address
+    (bool sent, ) = stakedFundsTreasury.call{ value: contractBalance }(
+      abi.encodeWithSignature("complete()")
+    );
+    require(sent, "transfer to stakedFundsTreasury failed");
+  }
+
+  function timeLeft() public view returns (uint256 timeleft) {
+    if (block.timestamp >= deadline) {
+      return 0;
+    } else {
+      return deadline - block.timestamp;
+    }
   }
 }
