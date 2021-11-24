@@ -140,11 +140,11 @@ contract FilmOwnerProjects {
         unit256 profits;
         unit25 ratio;
         
-        #Calculate ratio funded between owners and funders
-        ratio = individual funded /getTotalFundedAmount(id)
+        #Calculate ratio funded of owners and funders
+        ratio = amount / getTotalFundedAmount(id)
         
         #Calculate profits
-        profits = 
+        profits = TotalProfits * ratio
         
         
         #Release the profits
