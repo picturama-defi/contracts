@@ -22,6 +22,8 @@ contract FilmOwnerProjects {
     struct FilmFundingDetails {
         uint256 targetAmount;
         mapping(address => uint256) funderAddressToAmountMapping;
+        uint256 individualProfit;
+        mapping(address => uint256) funderAddressToProfitMapping;
         address[] funders;
     }
 
@@ -133,5 +135,28 @@ contract FilmOwnerProjects {
                 ];
         }
         return totalFunded;
+    }
+    function releaseProfits(uint256 totalFunded, bytes32 id) public payable{
+        uint256 totalProfits = 1000;
+        uint256 ratio;
+        uint256 funded;
+        uint256 individualProfit;
+        
+        for (
+            uint256 i = 0;
+            i < filmIdToDetailsMapping[id].funders.length;
+            i++
+        ) {
+            funded =
+                filmIdToDetailsMapping[id].funderAddressToAmountMapping[
+                    filmIdToDetailsMapping[id].funders[i]
+                ];
+            
+            ratio = funded / totalFunded;
+            individualProfit = totalProfits * ratio;
+            
+            filmIdToDetailsMapping[id].funderAddressToProfitMapping[msg.sender] = individualProfit;
+
+        }
     }
 }
