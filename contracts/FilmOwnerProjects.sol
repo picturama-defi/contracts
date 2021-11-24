@@ -134,4 +134,29 @@ contract FilmOwnerProjects {
         }
         return totalFunded;
     }
+    function releaseProfits(uint256 totalFunded, bytes32 id) public view returns(uint256){
+        uint256 totalProfits = 1000;
+        uint256 ratio;
+        uint256 funded;
+        uint256 individualProfit;
+        
+        for (
+            uint256 i = 0;
+            i < filmIdToDetailsMapping[id].funders.length;
+            i++
+        ) {
+            funded =
+                filmIdToDetailsMapping[id].funderAddressToAmountMapping[
+                    filmIdToDetailsMapping[id].funders[i]
+                ];
+            
+            ratio = funded / totalFunded;
+            individualProfit = totalProfits * ratio;
+
+            // So i need to map the individualProfit to fundersAddress and return that
+        }
+
+
+        return ratio;
+    }
 }
