@@ -72,15 +72,6 @@ contract Film {
         funds.pop();
     }
 
-    function findFundIndex(address sender) public view returns (uint256) {
-        for (uint256 i = 0; i < funds.length; i++) {
-            if (funds[i].funder == sender) {
-                return i;
-            }
-        }
-        revert("Invalid request");
-    }
-
     function isAlreadyFunded(address sender) public view returns (bool) {
         for (uint256 i = 0; i < funds.length; i++) {
             if (funds[i].funder == sender) {
@@ -99,28 +90,35 @@ contract Film {
         view
         returns (UserFundDetails memory)
     {
-        uint256 index = findFindIndex(userAddress);
+        bool isFundedByUser = isAlreadyFunded(userAddress);
+        UserFundDetails memory userFundDetails;
 
-        return
-            UserFundDetails(
-                funds[index].amount,
+        if (isFundedByUser) {
+            uint256 index = findFundIndex(userAddress);
+            userFundDetails = UserFundDetails(
+                targetFund,
                 amountFundedSoFar,
                 funds[index].amount,
                 calculateYield(index)
             );
+        } else {
+            userFundDetails = UserFundDetails(
+                targetFund,
+                amountFundedSoFar,
+                0,
+                0
+            );
+        }
+        return userFundDetails;
     }
 
     function calculateYield(uint256 index) public view returns (uint256) {
         return funds[index].startTime - filmStartTime;
     }
 
-    function findFindIndex(address userAddress)
-        internal
-        view
-        returns (uint256)
-    {
+    function findFundIndex(address sender) public view returns (uint256) {
         for (uint256 i = 0; i < funds.length; i++) {
-            if (funds[i].funder == userAddress) {
+            if (funds[i].funder == sender) {
                 return i;
             }
         }

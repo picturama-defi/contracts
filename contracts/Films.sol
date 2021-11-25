@@ -70,4 +70,12 @@ contract Films {
             revert("Invalid request");
         }
     }
+
+    function getFunds(bytes32 filmId) public view returns (Film.Fund[] memory) {
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].getFunds();
+        } else {
+            revert("Invalid request");
+        }
+    }
 }

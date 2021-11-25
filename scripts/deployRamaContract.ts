@@ -15,7 +15,7 @@ async function main() {
   const ramaContract = await RamaContract.deploy(ramaToken.address);
   console.log(`RamaContract address: ${ramaContract.address}`);
 
-  await ramaToken.connect(deployer).mint(ramaContract.address, 10000);
+  await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
 }
 
 main()

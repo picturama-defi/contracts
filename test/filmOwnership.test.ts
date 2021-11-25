@@ -129,7 +129,7 @@ describe("Film ownership tests", function () {
     });
 
     it("calculates yield", async function () {
-        const [deployer, addr1, addr2] = await ethers.getSigners();
+        const [deployer, addr1] = await ethers.getSigners();
 
         const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
         const ramaToken = await RamaTokenFactory.deploy();
@@ -150,5 +150,6 @@ describe("Film ownership tests", function () {
         })
 
         const res = await ramaContract.connect(addr1).getFundOfUserOnAProject(bytes("id1"));
+        console.log(res["userFund"].toString())
     });
 });

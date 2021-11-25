@@ -28,5 +28,8 @@ export default {
     //   url: process.env.MATIC_URL,
     //   accounts: [process.env.MATIC_PRIVATE_KEY],
     // },
+    hardhat: {
+      chainId: 1337
+    },
   },
 };
