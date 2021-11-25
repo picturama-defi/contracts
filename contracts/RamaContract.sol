@@ -39,4 +39,12 @@ contract RamaContract is Films, Ownable {
     function getProjectById(bytes32 filmId) public view returns (Film) {
         return getFilm(filmId);
     }
+
+    function getFundOfUserOnAProject(bytes32 filmId)
+        public
+        view
+        returns (Film.UserFundDetails memory)
+    {
+        return getFundOfUser(filmId, msg.sender);
+    }
 }

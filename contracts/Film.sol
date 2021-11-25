@@ -7,11 +7,13 @@ contract Film {
     uint256 public amountFundedSoFar;
     uint256 public fundNo = 1;
     address public filmOwner;
+    uint256 public filmStartTime;
 
     constructor(uint256 _targetFund, address _filmOwner) {
         targetFund = _targetFund;
         filmOwner = _filmOwner;
         amountFundedSoFar = 0;
+        filmStartTime = block.number;
     }
 
     struct Fund {
@@ -33,6 +35,12 @@ contract Film {
     function fund(uint256 amount, address sender) public {
         if (amount > getRemainingAmountToBeFunded()) {
             revert("Excess fund");
+        }
+
+        bool fundedByUser = isAlreadyFunded(sender);
+
+        if (fundedByUser) {
+            revert("Already funded");
         }
 
         Fund memory newFund = Fund({
@@ -73,6 +81,15 @@ contract Film {
         revert("Invalid request");
     }
 
+    function isAlreadyFunded(address sender) public view returns (bool) {
+        for (uint256 i = 0; i < funds.length; i++) {
+            if (funds[i].funder == sender) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function getFunds() public view returns (Fund[] memory) {
         return funds;
     }
@@ -89,8 +106,12 @@ contract Film {
                 funds[index].amount,
                 amountFundedSoFar,
                 funds[index].amount,
-                funds[index].yieldGenerated
+                calculateYield(index)
             );
+    }
+
+    function calculateYield(uint256 index) public view returns (uint256) {
+        return funds[index].startTime - filmStartTime;
     }
 
     function findFindIndex(address userAddress)

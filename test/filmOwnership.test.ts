@@ -127,4 +127,28 @@ describe("Film ownership tests", function () {
             value: 9001
         })).to.revertedWith("Excess fund")
     });
+
+    it("calculates yield", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
+
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
+
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 100
+        })
+
+        const res = await ramaContract.connect(addr1).getFundOfUserOnAProject(bytes("id1"));
+    });
 });

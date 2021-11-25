@@ -58,4 +58,16 @@ contract Films {
         }
         return false;
     }
+
+    function getFundOfUser(bytes32 filmId, address sender)
+        internal
+        view
+        returns (Film.UserFundDetails memory)
+    {
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].getFundOfUser(sender);
+        } else {
+            revert("Invalid request");
+        }
+    }
 }
