@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./Film.sol";
 import "./Films.sol";
 import "./RamaToken.sol";
 
@@ -22,7 +23,7 @@ contract RamaContract is Films, Ownable {
         addFilm(filmId, targetFund, filmOwner);
     }
 
-    function getProjectIds() public view returns (bytes32[] memory) {
+    function getAllProjectIds() public view returns (bytes32[] memory) {
         return getAllFilmIds();
     }
 
@@ -35,7 +36,7 @@ contract RamaContract is Films, Ownable {
         }
     }
 
-    function getRamaBalance(address addr) public view returns (uint256) {
-        return ramaToken.balanceOf(addr);
+    function getProjectById(bytes32 filmId) public view returns (Film) {
+        return getFilm(filmId);
     }
 }

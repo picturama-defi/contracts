@@ -8,6 +8,7 @@ import "./Films.sol";
 
 contract RamaToken is ERC20, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    address public ramaContractAddress;
 
     constructor() ERC20("RamaToken", "RAMA") {
         _setupRole(MINTER_ROLE, msg.sender);

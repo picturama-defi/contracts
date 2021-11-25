@@ -14,6 +14,8 @@ async function main() {
   const RamaContract = await ethers.getContractFactory("RamaContract");
   const ramaContract = await RamaContract.deploy(ramaToken.address);
   console.log(`RamaContract address: ${ramaContract.address}`);
+
+  await ramaToken.connect(deployer).mint(ramaContract.address, 10000);
 }
 
 main()

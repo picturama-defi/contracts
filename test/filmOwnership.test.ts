@@ -1,154 +1,130 @@
-// import { ethers } from "hardhat";
-// import { expect } from "chai";
+import { ethers } from "hardhat";
+import { expect } from "chai";
 
-// const bytes = (string) => ethers.utils.formatBytes32String(string)
-// const string = (bytes) => ethers.utils.parseBytes32String(bytes)
+const bytes = (string) => ethers.utils.formatBytes32String(string)
+const string = (bytes) => ethers.utils.parseBytes32String(bytes)
 
-// describe("Film ownership tests", function () {
-//   it("tests addition of films", async function () {
-//     const [, addr1] = await ethers.getSigners();
+describe("Film ownership tests", function () {
+    it("tests addition of films", async function () {
+        const [, addr1] = await ethers.getSigners();
 
-//     const RamaTokenFactory = await ethers.getContractFactory("Films");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-//     await ramaTokenContract.addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     );
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-//     await ramaTokenContract.addFilm(
-//       bytes("id2"),
-//       1000,
-//       addr1.address
-//     );
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        );
 
-//     const filmsAdded = await ramaTokenContract.getAllFilmIds()
+        await ramaContract.addProject(
+            bytes("id2"),
+            1000,
+            addr1.address
+        );
 
-//     expect(string(filmsAdded[0].toString())).to.eq("id1")
-//     expect(string(filmsAdded[1].toString())).to.eq("id2")
-//   });
+        const filmsAdded = await ramaContract.getAllProjectIds()
 
-//   it("tests unauthorised users not allowed to add films", async function () {
-//     const [, addr1] = await ethers.getSigners();
+        expect(string(filmsAdded[0].toString())).to.eq("id1")
+        expect(string(filmsAdded[1].toString())).to.eq("id2")
+    });
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+    it("tests unauthorised users not allowed to add films", async function () {
+        const [, addr1] = await ethers.getSigners();
 
-//     expect(ramaTokenContract.connect(addr1).addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )).to.be.revertedWith('Ownable: caller is not the owner');
-//   });
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-//   it("tests unauthorised users not allowed to add films", async function () {
-//     const [, addr1] = await ethers.getSigners();
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+        expect(ramaContract.connect(addr1).addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )).to.be.revertedWith('Ownable: caller is not the owner');
+    });
 
-//     expect(ramaTokenContract.connect(addr1).addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )).to.be.revertedWith('Ownable: caller is not the owner');
-//   });
+    it("tests unauthorised users not allowed to add films", async function () {
+        const [, addr1] = await ethers.getSigners();
 
-//   it("tests funding of films", async function () {
-//     const [, addr1, addr2] = await ethers.getSigners();
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-//     await ramaTokenContract.addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )
+        expect(ramaContract.connect(addr1).addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )).to.be.revertedWith('Ownable: caller is not the owner');
+    });
 
-//     await ramaTokenContract.connect(addr1).fund(bytes("id1"), {
-//       value: 100
-//     })
+    it("tests funding of films", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
 
-//     await ramaTokenContract.connect(addr2).fund(bytes("id1"), {
-//       value: 200
-//     })
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-//     const res = await ramaTokenContract.getFilm(bytes("id1"))
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-//     const film = await ethers.getContractAt("Film", res);
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
 
-//     const funds = await film.getFunds()
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )
 
-//     expect(funds[0].toString()).to.eq("100,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,10,1")
-//     expect(funds[1].toString()).to.eq("200,0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,11,2")
-//   });
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 100
+        })
 
-//   it("tests over funding of films", async function () {
-//     const [, addr1, addr2] = await ethers.getSigners();
+        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 200
+        })
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+        const res = await ramaContract.getProjectById(bytes("id1"))
 
-//     await ramaTokenContract.addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )
+        const film = await ethers.getContractAt("Film", res);
 
-//     await ramaTokenContract.connect(addr1).fund(bytes("id1"), {
-//       value: 100
-//     })
+        const funds = await film.getFunds()
 
-//     expect(ramaTokenContract.connect(addr2).fund(bytes("id1"), {
-//       value: 9001
-//     })).to.revertedWith("Excess fund")
-//   });
+        expect(funds[0]["funder"].toString()).to.eq("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
+        expect(funds[1]["funder"].toString()).to.eq("0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC")
 
-//   it("tests removal of funding", async function () {
-//     const [, addr1, addr2] = await ethers.getSigners();
+        expect(funds[0]["amount"].toString()).to.eq("100")
+        expect(funds[1]["amount"].toString()).to.eq("200")
+    });
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
+    it("tests over funding of films", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
 
-//     await ramaTokenContract.addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-//     await ramaTokenContract.connect(addr1).fund(bytes("id1"), {
-//       value: 100
-//     })
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-//     await ramaTokenContract.connect(addr2).fund(bytes("id1"), {
-//       value: 200
-//     })
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
 
-//     await ramaTokenContract.connect(addr1).removeFund(bytes("id1"), 1)
-//   });
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )
 
-//   it("tests removal of funding by user who is not the owner", async function () {
-//     const [, addr1, addr2] = await ethers.getSigners();
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 100
+        })
 
-//     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-//     const ramaTokenContract = await RamaTokenFactory.deploy();
-
-//     await ramaTokenContract.addFilm(
-//       bytes("id1"),
-//       1000,
-//       addr1.address
-//     )
-
-//     await ramaTokenContract.connect(addr1).fund(bytes("id1"), {
-//       value: 100
-//     })
-
-//     await ramaTokenContract.connect(addr2).fund(bytes("id1"), {
-//       value: 200
-//     })
-
-//     expect(ramaTokenContract.connect(addr2).removeFund(bytes("id1"), 1)).to.revertedWith("Invalid request");
-//   });
-// });
+        expect(ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 9001
+        })).to.revertedWith("Excess fund")
+    });
+});

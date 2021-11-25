@@ -13,7 +13,7 @@ contract Films {
         bytes32 filmId,
         uint256 targetFund,
         address filmOwner
-    ) public {
+    ) internal {
         filmIdToFilm[filmId] = new Film(targetFund, filmOwner);
         filmIds.push(filmId);
     }
@@ -43,7 +43,7 @@ contract Films {
         }
     }
 
-    function getFilm(bytes32 filmId) public view returns (Film) {
+    function getFilm(bytes32 filmId) internal view returns (Film) {
         if (!doesItemExist(filmId)) {
             revert("Film does not exist");
         }
