@@ -30,6 +30,12 @@ contract Film {
         uint256 yieldGenerated;
     }
 
+    // claim -> Rama + matic will be locked
+
+    // unstake -> Matic only
+
+    // withdraw (automatically) -> Matic + Rama
+
     Fund[] public funds;
 
     function fund(uint256 amount, address sender) public {
