@@ -1,7 +1,7 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "deploy": "npx hardhat run --network localhost scripts/deployRamaStaking.ts",
+    "deploy": "npx hardhat run --network localhost scripts/deployRamaContract.ts",
     "node": "npx hardhat node"
   },
   "devDependencies": {

@@ -10,8 +10,8 @@ import "./RamaToken.sol";
 contract RamaContract is Films, Ownable {
     ERC20 private ramaToken;
 
-    constructor() {
-        ramaToken = new RamaToken(1000);
+    constructor(address tokenAddress) Films() {
+        ramaToken = RamaToken(tokenAddress);
     }
 
     function addProject(

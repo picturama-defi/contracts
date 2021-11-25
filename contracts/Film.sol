@@ -18,6 +18,14 @@ contract Film {
         uint256 amount;
         address funder;
         uint256 startTime;
+        uint256 yieldGenerated;
+    }
+
+    struct UserFundDetails {
+        uint256 targetFund;
+        uint256 amountFundedSoFar;
+        uint256 userFund;
+        uint256 yieldGenerated;
     }
 
     Fund[] public funds;
@@ -30,7 +38,8 @@ contract Film {
         Fund memory newFund = Fund({
             amount: amount,
             funder: sender,
-            startTime: block.number
+            startTime: block.number,
+            yieldGenerated: 0
         });
 
         amountFundedSoFar = amountFundedSoFar + amount;
@@ -66,5 +75,34 @@ contract Film {
 
     function getFunds() public view returns (Fund[] memory) {
         return funds;
+    }
+
+    function getFundOfUser(address userAddress)
+        public
+        view
+        returns (UserFundDetails memory)
+    {
+        uint256 index = findFindIndex(userAddress);
+
+        return
+            UserFundDetails(
+                funds[index].amount,
+                amountFundedSoFar,
+                funds[index].amount,
+                funds[index].yieldGenerated
+            );
+    }
+
+    function findFindIndex(address userAddress)
+        internal
+        view
+        returns (uint256)
+    {
+        for (uint256 i = 0; i < funds.length; i++) {
+            if (funds[i].funder == userAddress) {
+                return i;
+            }
+        }
+        revert("Invalid request");
     }
 }
