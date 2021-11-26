@@ -149,7 +149,7 @@ describe("Film ownership tests", function () {
             value: 100
         })
 
-        const res = await ramaContract.connect(addr1).getFundOfUserOnAProject(bytes("id1"));
-        console.log(res["userFund"].toString())
+        const res = await ramaContract.connect(addr1).claimableReward(bytes("id1"));
+        console.log(res.toString());
     });
 });

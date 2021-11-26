@@ -13,24 +13,25 @@ contract Film {
         targetFund = _targetFund;
         filmOwner = _filmOwner;
         amountFundedSoFar = 0;
-        filmStartTime = block.number;
+        filmStartTime = block.timestamp;
     }
 
     struct Fund {
         uint256 amount;
         address funder;
         uint256 startTime;
-        uint256 yieldGenerated;
+        bool claimed;
     }
 
     struct UserFundDetails {
-        uint256 targetFund;
-        uint256 amountFundedSoFar;
         uint256 userFund;
         uint256 yieldGenerated;
     }
 
-    // claim -> Rama + matic will be locked
+    struct FilmFundDetails {
+        uint256 targetFund;
+        uint256 fundedSoFar;
+    }
 
     // unstake -> Matic only
 
@@ -52,8 +53,8 @@ contract Film {
         Fund memory newFund = Fund({
             amount: amount,
             funder: sender,
-            startTime: block.number,
-            yieldGenerated: 0
+            startTime: block.timestamp,
+            claimed: false
         });
 
         amountFundedSoFar = amountFundedSoFar + amount;
@@ -97,29 +98,31 @@ contract Film {
         returns (UserFundDetails memory)
     {
         bool isFundedByUser = isAlreadyFunded(userAddress);
-        UserFundDetails memory userFundDetails;
 
         if (isFundedByUser) {
             uint256 index = findFundIndex(userAddress);
-            userFundDetails = UserFundDetails(
-                targetFund,
-                amountFundedSoFar,
-                funds[index].amount,
-                calculateYield(index)
-            );
+            return
+                UserFundDetails(
+                    funds[index].amount,
+                    calculateYieldTotal(userAddress)
+                );
         } else {
-            userFundDetails = UserFundDetails(
-                targetFund,
-                amountFundedSoFar,
-                0,
-                0
-            );
+            revert("Invalid request");
         }
-        return userFundDetails;
     }
 
-    function calculateYield(uint256 index) public view returns (uint256) {
+    function getFilmFundDetails() public view returns (FilmFundDetails memory) {
+        return FilmFundDetails(targetFund, amountFundedSoFar);
+    }
+
+    function calculateYieldTime(uint256 index) public view returns (uint256) {
         return funds[index].startTime - filmStartTime;
+    }
+
+    function calculateYieldTotal(address sender) public view returns (uint256) {
+        uint256 index = findFundIndex(sender);
+        uint256 time = calculateYieldTime(index);
+        return time;
     }
 
     function findFundIndex(address sender) public view returns (uint256) {

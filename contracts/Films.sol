@@ -71,9 +71,33 @@ contract Films {
         }
     }
 
+    function getFilmFundDetails(bytes32 filmId)
+        internal
+        view
+        returns (Film.FilmFundDetails memory)
+    {
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].getFilmFundDetails();
+        } else {
+            revert("Invalid request");
+        }
+    }
+
     function getFunds(bytes32 filmId) public view returns (Film.Fund[] memory) {
         if (doesItemExist(filmId)) {
             return filmIdToFilm[filmId].getFunds();
+        } else {
+            revert("Invalid request");
+        }
+    }
+
+    function getClaimableBalance(bytes32 filmId, address sender)
+        public
+        view
+        returns (uint256)
+    {
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].calculateYieldTotal(sender);
         } else {
             revert("Invalid request");
         }

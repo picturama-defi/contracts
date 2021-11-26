@@ -47,4 +47,24 @@ contract RamaContract is Films, Ownable {
     {
         return getFundOfUser(filmId, msg.sender);
     }
+
+    function getProjectFundDetails(bytes32 filmId)
+        public
+        view
+        returns (Film.FilmFundDetails memory)
+    {
+        if (doesItemExist(filmId)) {
+            return getFilmFundDetails(filmId);
+        } else {
+            revert("Invalid request");
+        }
+    }
+
+    function claimableReward(bytes32 filmId) public view returns (uint256) {
+        if (doesItemExist(filmId)) {
+            return getClaimableBalance(filmId, msg.sender);
+        } else {
+            revert("Invalid request");
+        }
+    }
 }
