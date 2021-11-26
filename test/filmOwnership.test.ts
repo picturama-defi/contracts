@@ -128,8 +128,8 @@ describe("Film ownership tests", function () {
         })).to.revertedWith("Excess fund")
     });
 
-    it("calculates yield", async function () {
-        const [deployer, addr1] = await ethers.getSigners();
+    it("tests claiming of yield", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
 
         const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
         const ramaToken = await RamaTokenFactory.deploy();
@@ -145,11 +145,22 @@ describe("Film ownership tests", function () {
             addr1.address
         )
 
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
         await ramaContract.connect(addr1).fundProject(bytes("id1"), {
             value: 100
         })
 
-        const res = await ramaContract.connect(addr1).claimableReward(bytes("id1"));
-        console.log(res.toString());
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
+        await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
+
+        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 100
+        })
+
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
+        await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
     });
 });

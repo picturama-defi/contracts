@@ -8,6 +8,7 @@ contract Film {
     uint256 public fundNo = 1;
     address public filmOwner;
     uint256 public filmStartTime;
+    uint256 public factor = 10000;
 
     constructor(uint256 _targetFund, address _filmOwner) {
         targetFund = _targetFund;
@@ -20,7 +21,7 @@ contract Film {
         uint256 amount;
         address funder;
         uint256 startTime;
-        bool claimed;
+        bool isFundsLocked;
     }
 
     struct UserFundDetails {
@@ -39,7 +40,7 @@ contract Film {
 
     Fund[] public funds;
 
-    function fund(uint256 amount, address sender) public {
+    function fund(uint256 amount, address sender) public payable {
         if (amount > getRemainingAmountToBeFunded()) {
             revert("Excess fund");
         }
@@ -54,7 +55,7 @@ contract Film {
             amount: amount,
             funder: sender,
             startTime: block.timestamp,
-            claimed: false
+            isFundsLocked: false
         });
 
         amountFundedSoFar = amountFundedSoFar + amount;
@@ -73,7 +74,7 @@ contract Film {
         }
     }
 
-    function deleteItemInArray(uint256 index) internal {
+    function deleteItemInArray(uint256 index) public {
         require(index < funds.length, "Invalid request");
         funds[index] = funds[funds.length - 1];
         funds.pop();
@@ -115,14 +116,27 @@ contract Film {
         return FilmFundDetails(targetFund, amountFundedSoFar);
     }
 
-    function calculateYieldTime(uint256 index) public view returns (uint256) {
+    function timeFromStartOfProjectToFunding(uint256 index)
+        public
+        view
+        returns (uint256)
+    {
+        console.log(funds[index].startTime);
+        console.log(filmStartTime);
+
         return funds[index].startTime - filmStartTime;
     }
 
     function calculateYieldTotal(address sender) public view returns (uint256) {
         uint256 index = findFundIndex(sender);
-        uint256 time = calculateYieldTime(index);
-        return time;
+        return
+            funds[index].amount *
+            (factor / timeFromStartOfProjectToFunding(index));
+    }
+
+    function claimYield(address sender) public view returns (uint256) {
+        uint256 yield = calculateYieldTotal(sender);
+        return yield;
     }
 
     function findFundIndex(address sender) public view returns (uint256) {
@@ -132,5 +146,10 @@ contract Film {
             }
         }
         revert("Invalid request");
+    }
+
+    function lockFund(address sender) public {
+        uint256 index = findFundIndex(sender);
+        funds[index].isFundsLocked = true;
     }
 }

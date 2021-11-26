@@ -60,9 +60,12 @@ contract RamaContract is Films, Ownable {
         }
     }
 
-    function claimableReward(bytes32 filmId) public view returns (uint256) {
+    function claimProjectRewards(bytes32 filmId) public returns (uint256) {
         if (doesItemExist(filmId)) {
-            return getClaimableBalance(filmId, msg.sender);
+            uint256 yield = claimReward(filmId, msg.sender);
+            ramaToken.transfer(msg.sender, yield);
+            lockFund(filmId, msg.sender);
+            return yield;
         } else {
             revert("Invalid request");
         }
