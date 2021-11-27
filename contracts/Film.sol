@@ -39,6 +39,7 @@ contract Film {
   // withdraw (automatically) -> Matic + Rama
 
   Fund[] public funds;
+  mapping(address => uint256) public userFundbalance;
 
   function fund(uint256 amount, address sender) public payable {
     if (amount > getRemainingAmountToBeFunded()) {
@@ -60,6 +61,7 @@ contract Film {
 
     amountFundedSoFar = amountFundedSoFar + amount;
     funds.push(newFund);
+    userFundbalance[msg.sender] += amount;
   }
 
   function getRemainingAmountToBeFunded() public view returns (uint256) {
@@ -67,11 +69,16 @@ contract Film {
   }
 
   function removeFund(uint256 _amount, address sender) public {
-    // if (amountFundedSoFar < targetFund) {}
+    require(userFundbalance[msg.sender] > _amount, "No funds to withdraw");
+    if (amountFundedSoFar < targetFund) {
+      uint256 index = findFundIndex(sender);
+      require(funds[index].isFundsLocked = false, "No funds to withdraw");
+      amountFundedSoFar = amountFundedSoFar - _amount;
+    }
 
-    // if (amountFundedSoFar >= targetFund) {
-    //   revert("Film is already in production you cannot remove funds");
-    // }
+    if (amountFundedSoFar >= targetFund) {
+      revert("Film is already in production you cannot remove funds");
+    }
     uint256 indexOfItemToBeDeleted = findFundIndex(sender);
 
     if (indexOfItemToBeDeleted != 0) {
