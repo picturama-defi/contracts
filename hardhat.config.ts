@@ -17,16 +17,19 @@ export default {
     },
   },
   networks: {
-    rinkeby: {
-      url: process.env.RINKEBY_URL,
-      accounts: [process.env.PRIVATE_KEY],
-    },
+    // rinkeby: {
+    //   url: process.env.RINKEBY_URL,
+    //   accounts: [process.env.PRIVATE_KEY],
+    // },
     // ganache: {
     //   url: process.env.GANACHE_URL,
     // },
-    matic: {
-      url: process.env.MATIC_URL,
-      accounts: [process.env.MATIC_PRIVATE_KEY],
+    // matic: {
+    //   url: process.env.MATIC_URL,
+    //   accounts: [process.env.MATIC_PRIVATE_KEY],
+    // },
+    hardhat: {
+      chainId: 1337
     },
   },
 };

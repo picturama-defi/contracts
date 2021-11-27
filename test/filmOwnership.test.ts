@@ -1,90 +1,214 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 
+const bytes = (string) => ethers.utils.formatBytes32String(string)
+const string = (bytes) => ethers.utils.parseBytes32String(bytes)
+
 describe("Film ownership tests", function () {
-  it("tests addition of films", async function () {
-    const [, addr1] = await ethers.getSigners();
+    it("tests addition of films", async function () {
+        const [, addr1] = await ethers.getSigners();
 
-    const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-    const ramaTokenContract = await RamaTokenFactory.deploy();
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-    await ramaTokenContract.addFilm(
-      addr1.address,
-      1000,
-      ethers.utils.formatBytes32String("id1")
-    );
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-    await ramaTokenContract.addFilm(
-      addr1.address,
-      2000,
-      ethers.utils.formatBytes32String("id2")
-    );
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        );
 
-    const res = await ramaTokenContract.getAllProjects();
+        await ramaContract.addProject(
+            bytes("id2"),
+            1000,
+            addr1.address
+        );
 
-    console.log(ethers.utils.formatBytes32String("id1"));
+        const filmsAdded = await ramaContract.getProjectFundDetails(bytes("id1"))
 
-    expect(res[0]["targetAmount"].toString()).to.eq("1000");
-    expect(res[0]["totalFunded"].toString()).to.eq("0");
-    expect(ethers.utils.parseBytes32String(res[0]["id"])).to.eq("id1");
-
-    expect(res[1]["targetAmount"].toString()).to.eq("2000");
-    expect(res[1]["totalFunded"].toString()).to.eq("0");
-    expect(ethers.utils.parseBytes32String(res[1]["id"])).to.eq("id2");
-  });
-
-  it("tests addition of a film by user who is not the admin", async function () {
-    const [, addr1] = await ethers.getSigners();
-
-    const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-    const ramaTokenContract = await RamaTokenFactory.deploy();
-
-    await expect(
-      ramaTokenContract
-        .connect(addr1)
-        .addFilm(addr1.address, 1000, ethers.utils.formatBytes32String("id"))
-    ).to.be.revertedWith("Unauthorised request");
-  });
-
-  it("tests funding of a film", async function () {
-    const [owner, addr1] = await ethers.getSigners();
-
-    const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-    const ramaTokenContract = await RamaTokenFactory.deploy();
-
-    ramaTokenContract
-      .connect(owner)
-      .addFilm(addr1.address, 1000, ethers.utils.formatBytes32String("id"));
-
-    ramaTokenContract.fundFilm(ethers.utils.formatBytes32String("id"), {
-      value: 100,
+        console.log(filmsAdded)
     });
 
-    const res = await ramaTokenContract.getAllProjects();
+    it("tests unauthorised users not allowed to add films", async function () {
+        const [, addr1] = await ethers.getSigners();
 
-    expect(res[0][1].toString()).to.eq("100");
-  });
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
 
-  it("tests over funding of a film", async function () {
-    const [owner, addr1] = await ethers.getSigners();
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
 
-    const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
-    const ramaTokenContract = await RamaTokenFactory.deploy();
-
-    ramaTokenContract
-      .connect(owner)
-      .addFilm(addr1.address, 1000, ethers.utils.formatBytes32String("id1"));
-
-    ramaTokenContract.fundFilm(ethers.utils.formatBytes32String("id1"), {
-      value: 100,
+        expect(ramaContract.connect(addr1).addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )).to.be.revertedWith('Ownable: caller is not the owner');
     });
 
-    await expect(
-      ramaTokenContract
-        .connect(addr1)
-        .fundFilm(ethers.utils.formatBytes32String("id1"), {
-          value: 1000,
+    it("tests unauthorised users not allowed to add films", async function () {
+        const [, addr1] = await ethers.getSigners();
+
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
+
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+        expect(ramaContract.connect(addr1).addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+
+    it("tests funding of films", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
+
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
+
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 100
         })
-    ).to.be.revertedWith("Excess fund");
-  });
+
+        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 200
+        })
+
+        const res = await ramaContract.getProjectById(bytes("id1"))
+
+        const film = await ethers.getContractAt("Film", res);
+
+        const funds = await film.getFunds()
+
+        expect(funds[0]["funder"].toString()).to.eq("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
+        expect(funds[1]["funder"].toString()).to.eq("0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC")
+
+        expect(funds[0]["amount"].toString()).to.eq("100")
+        expect(funds[1]["amount"].toString()).to.eq("200")
+    });
+
+    it("tests over funding of films", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
+
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
+
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000,
+            addr1.address
+        )
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 100
+        })
+
+        expect(ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 9001
+        })).to.revertedWith("Excess fund")
+    });
+
+    // it("tests claiming of yield", async function () {
+    //     const [deployer, addr1, addr2] = await ethers.getSigners();
+
+    //     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+    //     const ramaToken = await RamaTokenFactory.deploy();
+
+    //     const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+    //     const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+    //     await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+    //     await ramaContract.addProject(
+    //         bytes("id1"),
+    //         1000000,
+    //         addr1.address
+    //     )
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+    //         value: 1000
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
+
+    //     await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+    //         value: 1000
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
+    // });
+
+    it("withdraw", async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
+
+        const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+        const ramaToken = await RamaTokenFactory.deploy();
+
+        const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+        const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+        await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+        await ramaContract.addProject(
+            bytes("id1"),
+            1000000,
+            addr1.address
+        )
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 1000
+        })
+
+        await ramaContract.connect(addr1).withdrawFromProject(bytes("id1"))
+
+        const res = await ramaContract.getProjectById(bytes("id1"))
+
+        let film = await ethers.getContractAt("Film", res);
+
+        let funds = await film.getFunds()
+
+        expect(funds.length).to.eq(0)
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 1000
+        })
+
+        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 2000
+        })
+
+        await ramaContract.connect(addr1).withdrawFromProject(bytes("id1"))
+
+        film = await ethers.getContractAt("Film", res);
+
+        funds = await film.getFunds()
+
+        expect(funds[0].amount.toString()).to.eq("2000")
+    });
+
 });
