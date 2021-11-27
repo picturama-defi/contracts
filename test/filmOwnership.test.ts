@@ -140,14 +140,14 @@ describe("Film ownership tests", function () {
 
         await ramaContract.addProject(
             bytes("id1"),
-            1000,
+            1000000,
             addr1.address
         )
 
         await new Promise(resolve => setTimeout(resolve, 4000));
 
         await ramaContract.connect(addr1).fundProject(bytes("id1"), {
-            value: 100
+            value: 1000
         })
 
         await new Promise(resolve => setTimeout(resolve, 4000));
@@ -155,7 +155,7 @@ describe("Film ownership tests", function () {
         await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
 
         await ramaContract.connect(addr2).fundProject(bytes("id1"), {
-            value: 100
+            value: 1000
         })
 
         await new Promise(resolve => setTimeout(resolve, 4000));

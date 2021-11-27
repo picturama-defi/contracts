@@ -8,7 +8,7 @@ contract Film {
     uint256 public fundNo = 1;
     address public filmOwner;
     uint256 public filmStartTime;
-    uint256 public factor = 100;
+    uint256 public factor = 1000;
 
     constructor(uint256 _targetFund, address _filmOwner) {
         targetFund = _targetFund;
@@ -48,7 +48,19 @@ contract Film {
             revert("Already funded");
         }
 
-        uint256 yield = amount * (factor / (block.timestamp - filmStartTime));
+        uint256 minimum = 365;
+        uint256 extraIncentive = 100;
+
+        uint256 yield = (amount * minimum) /
+            1000 +
+            (extraIncentive *
+                (
+                    (amount -
+                        amount *
+                        ((block.timestamp - filmStartTime) /
+                            (2 * 365 * 24 * 60 * 60)))
+                )) /
+            1000;
 
         Fund memory newFund = Fund({
             amount: amount,
