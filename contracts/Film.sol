@@ -8,7 +8,7 @@ contract Film {
     uint256 public fundNo = 1;
     address public filmOwner;
     uint256 public filmStartTime;
-    uint256 public factor = 10000;
+    uint256 public factor = 100;
 
     constructor(uint256 _targetFund, address _filmOwner) {
         targetFund = _targetFund;
@@ -21,7 +21,7 @@ contract Film {
         uint256 amount;
         address funder;
         uint256 startTime;
-        bool isFundsLocked;
+        bool isClaimed;
         uint256 claimableYield;
     }
 
@@ -54,7 +54,7 @@ contract Film {
             amount: amount,
             funder: sender,
             startTime: block.timestamp,
-            isFundsLocked: false,
+            isClaimed: false,
             claimableYield: yield
         });
 
@@ -118,7 +118,11 @@ contract Film {
 
     function claimYield(address sender) public view returns (uint256) {
         uint256 index = findFundIndex(sender);
-        return funds[index].claimableYield;
+        if (!funds[index].isClaimed) {
+            return funds[index].claimableYield;
+        } else {
+            revert("Reward already claimed");
+        }
     }
 
     function findFundIndex(address sender) public view returns (uint256) {
@@ -132,6 +136,7 @@ contract Film {
 
     function lockFund(address sender) public {
         uint256 index = findFundIndex(sender);
-        funds[index].isFundsLocked = true;
+        funds[index].isClaimed = true;
+        funds[index].claimableYield = 0;
     }
 }
