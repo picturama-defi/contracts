@@ -48,7 +48,7 @@ contract Film {
             revert("Already funded");
         }
 
-        uint256 minimum = 365;
+        uint256 minimum = 375;
         uint256 extraIncentive = 100;
 
         uint256 yield = (amount * minimum) /
@@ -78,11 +78,31 @@ contract Film {
         return targetFund - amountFundedSoFar;
     }
 
-    function removeFund(address sender) public {
+    function removeFund(address sender) public returns (uint256) {
         uint256 indexOfItemToBeDeleted = findFundIndex(sender);
 
         if (indexOfItemToBeDeleted != 0) {
+            if (funds[indexOfItemToBeDeleted].amount == 0) {
+                revert("No funds to withdraw");
+            }
+
+            if (funds[indexOfItemToBeDeleted].isClaimed == true) {
+                revert("Rama tokens are claimed");
+            }
+
+            if (amountFundedSoFar >= targetFund) {
+                revert("Film is in production");
+            }
+
             deleteItemInArray(indexOfItemToBeDeleted);
+
+            amountFundedSoFar =
+                amountFundedSoFar -
+                funds[indexOfItemToBeDeleted].amount;
+
+            return funds[indexOfItemToBeDeleted].amount;
+        } else {
+            revert("Invalid request");
         }
     }
 

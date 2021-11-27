@@ -62,9 +62,13 @@ contract RamaContract is Films, Ownable {
 
     function claimProjectRewards(bytes32 filmId) public returns (uint256) {
         uint256 yield = claimReward(filmId, msg.sender);
-        console.log(yield);
         ramaToken.transfer(msg.sender, yield);
         lockFund(filmId, msg.sender);
         return yield;
+    }
+
+    function withdrawFromProject(bytes32 filmId) public payable {
+        uint256 amountToWithdraw = withdraw(filmId, msg.sender);
+        payable(msg.sender).transfer(amountToWithdraw);
     }
 }

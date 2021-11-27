@@ -113,6 +113,14 @@ contract Films {
         }
     }
 
+    function withdraw(bytes32 filmId, address sender) public returns (uint256) {
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].removeFund(sender);
+        } else {
+            revert("Invalid request");
+        }
+    }
+
     function lockFund(bytes32 filmId, address sender) public {
         filmIdToFilm[filmId].lockFund(sender);
     }
