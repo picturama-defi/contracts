@@ -26,7 +26,8 @@ contract Film {
 
     struct UserFundDetails {
         uint256 userFund;
-        uint256 yieldGenerated;
+        uint256 filmFundingStartTime;
+        uint256 userFundedTime;
     }
 
     struct FilmFundDetails {
@@ -105,7 +106,8 @@ contract Film {
             return
                 UserFundDetails(
                     funds[index].amount,
-                    calculateYieldTotal(userAddress)
+                    filmStartTime,
+                    funds[index].startTime
                 );
         } else {
             revert("Invalid request");

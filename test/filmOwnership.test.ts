@@ -26,10 +26,9 @@ describe("Film ownership tests", function () {
             addr1.address
         );
 
-        const filmsAdded = await ramaContract.getAllProjectIds()
+        const filmsAdded = await ramaContract.getProjectFundDetails(bytes("id1"))
 
-        expect(string(filmsAdded[0].toString())).to.eq("id1")
-        expect(string(filmsAdded[1].toString())).to.eq("id2")
+        console.log(filmsAdded)
     });
 
     it("tests unauthorised users not allowed to add films", async function () {

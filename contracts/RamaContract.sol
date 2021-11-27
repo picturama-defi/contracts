@@ -27,6 +27,10 @@ contract RamaContract is Films, Ownable {
         return getAllFilmIds();
     }
 
+    function getUserFundedProjects() public view returns (bytes32[] memory) {
+        return getUserFundedFilmIds(msg.sender);
+    }
+
     function fundProject(bytes32 filmId) public payable {
         bool isSuccessfullyFunded = fund(filmId, msg.value, msg.sender);
         if (isSuccessfullyFunded) {
@@ -53,21 +57,13 @@ contract RamaContract is Films, Ownable {
         view
         returns (Film.FilmFundDetails memory)
     {
-        if (doesItemExist(filmId)) {
-            return getFilmFundDetails(filmId);
-        } else {
-            revert("Invalid request");
-        }
+        return getFilmFundDetails(filmId);
     }
 
     function claimProjectRewards(bytes32 filmId) public returns (uint256) {
-        if (doesItemExist(filmId)) {
-            uint256 yield = claimReward(filmId, msg.sender);
-            ramaToken.transfer(msg.sender, yield);
-            lockFund(filmId, msg.sender);
-            return yield;
-        } else {
-            revert("Invalid request");
-        }
+        uint256 yield = claimReward(filmId, msg.sender);
+        ramaToken.transfer(msg.sender, yield);
+        lockFund(filmId, msg.sender);
+        return yield;
     }
 }

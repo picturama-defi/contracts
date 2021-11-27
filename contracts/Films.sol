@@ -22,6 +22,20 @@ contract Films {
         return filmIds;
     }
 
+    function getUserFundedFilmIds(address sender)
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        bytes32[] memory userFundedFilmIds = new bytes32[](filmIds.length);
+        for (uint256 i = 0; i < filmIds.length; i++) {
+            if (filmIdToFilm[filmIds[i]].isAlreadyFunded(sender)) {
+                userFundedFilmIds[i] = filmIds[i];
+            }
+        }
+        return userFundedFilmIds;
+    }
+
     function fund(
         bytes32 filmId,
         uint256 value,
@@ -76,11 +90,7 @@ contract Films {
         view
         returns (Film.FilmFundDetails memory)
     {
-        if (doesItemExist(filmId)) {
-            return filmIdToFilm[filmId].getFilmFundDetails();
-        } else {
-            revert("Invalid request");
-        }
+        return filmIdToFilm[filmId].getFilmFundDetails();
     }
 
     function getFunds(bytes32 filmId) public view returns (Film.Fund[] memory) {
@@ -96,7 +106,11 @@ contract Films {
         view
         returns (uint256)
     {
-        return filmIdToFilm[filmId].claimYield(sender);
+        if (doesItemExist(filmId)) {
+            return filmIdToFilm[filmId].claimYield(sender);
+        } else {
+            revert("Invalid request");
+        }
     }
 
     function lockFund(bytes32 filmId, address sender) public {
