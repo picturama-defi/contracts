@@ -127,7 +127,43 @@ describe("Film ownership tests", function () {
         })).to.revertedWith("Excess fund")
     });
 
-    it("tests claiming of yield", async function () {
+    // it("tests claiming of yield", async function () {
+    //     const [deployer, addr1, addr2] = await ethers.getSigners();
+
+    //     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+    //     const ramaToken = await RamaTokenFactory.deploy();
+
+    //     const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+    //     const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+    //     await ramaToken.connect(deployer).mint(ramaContract.address, 100000);
+
+    //     await ramaContract.addProject(
+    //         bytes("id1"),
+    //         1000000,
+    //         addr1.address
+    //     )
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+    //         value: 1000
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
+
+    //     await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+    //         value: 1000
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
+    // });
+
+    it("withdraw", async function () {
         const [deployer, addr1, addr2] = await ethers.getSigners();
 
         const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
@@ -144,22 +180,11 @@ describe("Film ownership tests", function () {
             addr1.address
         )
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
         await ramaContract.connect(addr1).fundProject(bytes("id1"), {
             value: 1000
         })
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
-        await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
-
-        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
-            value: 1000
-        })
-
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
-        await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
+        await ramaContract.connect(addr1).withdrawFromProject(bytes("id1"))
     });
+
 });

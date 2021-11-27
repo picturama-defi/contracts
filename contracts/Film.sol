@@ -81,29 +81,28 @@ contract Film {
     function removeFund(address sender) public returns (uint256) {
         uint256 indexOfItemToBeDeleted = findFundIndex(sender);
 
-        if (indexOfItemToBeDeleted != 0) {
-            if (funds[indexOfItemToBeDeleted].amount == 0) {
-                revert("No funds to withdraw");
-            }
+        console.log("Hello");
+        console.log(indexOfItemToBeDeleted);
 
-            if (funds[indexOfItemToBeDeleted].isClaimed == true) {
-                revert("Rama tokens are claimed");
-            }
-
-            if (amountFundedSoFar >= targetFund) {
-                revert("Film is in production");
-            }
-
-            deleteItemInArray(indexOfItemToBeDeleted);
-
-            amountFundedSoFar =
-                amountFundedSoFar -
-                funds[indexOfItemToBeDeleted].amount;
-
-            return funds[indexOfItemToBeDeleted].amount;
-        } else {
-            revert("Invalid request");
+        if (funds[indexOfItemToBeDeleted].amount == 0) {
+            revert("No funds to withdraw");
         }
+
+        if (funds[indexOfItemToBeDeleted].isClaimed == true) {
+            revert("Rama tokens are claimed");
+        }
+
+        if (amountFundedSoFar >= targetFund) {
+            revert("Film is in production");
+        }
+
+        uint256 amountToWithdraw = funds[indexOfItemToBeDeleted].amount;
+
+        amountFundedSoFar = amountFundedSoFar - amountToWithdraw;
+
+        deleteItemInArray(indexOfItemToBeDeleted);
+
+        return amountToWithdraw;
     }
 
     function deleteItemInArray(uint256 index) public {
