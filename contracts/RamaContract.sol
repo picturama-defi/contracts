@@ -33,9 +33,7 @@ contract RamaContract is Films, Ownable {
 
     function fundProject(bytes32 filmId) public payable {
         bool isSuccessfullyFunded = fund(filmId, msg.value, msg.sender);
-        if (isSuccessfullyFunded) {
-            ramaToken.transfer(msg.sender, msg.value);
-        } else {
+        if (!isSuccessfullyFunded) {
             revert("Unable to fund");
         }
     }
