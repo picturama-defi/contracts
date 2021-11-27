@@ -185,6 +185,30 @@ describe("Film ownership tests", function () {
         })
 
         await ramaContract.connect(addr1).withdrawFromProject(bytes("id1"))
+
+        const res = await ramaContract.getProjectById(bytes("id1"))
+
+        let film = await ethers.getContractAt("Film", res);
+
+        let funds = await film.getFunds()
+
+        expect(funds.length).to.eq(0)
+
+        await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+            value: 1000
+        })
+
+        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+            value: 2000
+        })
+
+        await ramaContract.connect(addr1).withdrawFromProject(bytes("id1"))
+
+        film = await ethers.getContractAt("Film", res);
+
+        funds = await film.getFunds()
+
+        expect(funds[0].amount.toString()).to.eq("2000")
     });
 
 });

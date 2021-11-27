@@ -81,9 +81,6 @@ contract Film {
     function removeFund(address sender) public returns (uint256) {
         uint256 indexOfItemToBeDeleted = findFundIndex(sender);
 
-        console.log("Hello");
-        console.log(indexOfItemToBeDeleted);
-
         if (funds[indexOfItemToBeDeleted].amount == 0) {
             revert("No funds to withdraw");
         }
@@ -100,15 +97,18 @@ contract Film {
 
         amountFundedSoFar = amountFundedSoFar - amountToWithdraw;
 
-        deleteItemInArray(indexOfItemToBeDeleted);
+        deleteItemInArray(indexOfItemToBeDeleted, funds.length);
 
         return amountToWithdraw;
     }
 
-    function deleteItemInArray(uint256 index) public {
-        require(index < funds.length, "Invalid request");
-        funds[index] = funds[funds.length - 1];
-        funds.pop();
+    function deleteItemInArray(uint256 index, uint256 length) public {
+        if (length == 1) {
+            funds.pop();
+        } else {
+            funds[index] = funds[funds.length - 1];
+            funds.pop();
+        }
     }
 
     function isAlreadyFunded(address sender) public view returns (bool) {
