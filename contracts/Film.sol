@@ -22,22 +22,18 @@ contract Film {
         address funder;
         uint256 startTime;
         bool isFundsLocked;
+        uint256 claimableYield;
     }
 
     struct UserFundDetails {
         uint256 userFund;
-        uint256 filmFundingStartTime;
-        uint256 userFundedTime;
+        uint256 claimableYield;
     }
 
     struct FilmFundDetails {
         uint256 targetFund;
         uint256 fundedSoFar;
     }
-
-    // unstake -> Matic only
-
-    // withdraw (automatically) -> Matic + Rama
 
     Fund[] public funds;
 
@@ -52,11 +48,14 @@ contract Film {
             revert("Already funded");
         }
 
+        uint256 yield = amount * (factor / (block.timestamp - filmStartTime));
+
         Fund memory newFund = Fund({
             amount: amount,
             funder: sender,
             startTime: block.timestamp,
-            isFundsLocked: false
+            isFundsLocked: false,
+            claimableYield: yield
         });
 
         amountFundedSoFar = amountFundedSoFar + amount;
@@ -106,8 +105,7 @@ contract Film {
             return
                 UserFundDetails(
                     funds[index].amount,
-                    filmStartTime,
-                    funds[index].startTime
+                    funds[index].claimableYield
                 );
         } else {
             revert("Invalid request");
@@ -118,27 +116,9 @@ contract Film {
         return FilmFundDetails(targetFund, amountFundedSoFar);
     }
 
-    function timeFromStartOfProjectToFunding(uint256 index)
-        public
-        view
-        returns (uint256)
-    {
-        console.log(funds[index].startTime);
-        console.log(filmStartTime);
-
-        return funds[index].startTime - filmStartTime;
-    }
-
-    function calculateYieldTotal(address sender) public view returns (uint256) {
-        uint256 index = findFundIndex(sender);
-        return
-            funds[index].amount *
-            (factor / timeFromStartOfProjectToFunding(index));
-    }
-
     function claimYield(address sender) public view returns (uint256) {
-        uint256 yield = calculateYieldTotal(sender);
-        return yield;
+        uint256 index = findFundIndex(sender);
+        return funds[index].claimableYield;
     }
 
     function findFundIndex(address sender) public view returns (uint256) {
