@@ -121,9 +121,6 @@ contract Film {
         view
         returns (uint256)
     {
-        console.log(funds[index].startTime);
-        console.log(filmStartTime);
-
         return funds[index].startTime - filmStartTime;
     }
 
@@ -146,6 +143,17 @@ contract Film {
             }
         }
         revert("Invalid request");
+    }
+
+    function didUserFund(address sender) public view returns (bool) {
+        for (uint256 i = 0; i < funds.length; i++) {
+            console.log(funds[i].funder);
+            console.log(sender);
+            if (funds[i].funder == sender) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function lockFund(address sender) public {

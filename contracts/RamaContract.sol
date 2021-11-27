@@ -27,6 +27,10 @@ contract RamaContract is Films, Ownable {
         return getAllFilmIds();
     }
 
+    function getAllProjectIdsOfUser() public view returns (bytes32[] memory) {
+        return getAllFilmIdsOfUser(msg.sender);
+    }
+
     function fundProject(bytes32 filmId) public payable {
         bool isSuccessfullyFunded = fund(filmId, msg.value, msg.sender);
         if (isSuccessfullyFunded) {
@@ -63,6 +67,7 @@ contract RamaContract is Films, Ownable {
     function claimProjectRewards(bytes32 filmId) public returns (uint256) {
         if (doesItemExist(filmId)) {
             uint256 yield = claimReward(filmId, msg.sender);
+            console.log(yield);
             ramaToken.transfer(msg.sender, yield);
             lockFund(filmId, msg.sender);
             return yield;

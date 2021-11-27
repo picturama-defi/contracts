@@ -22,6 +22,20 @@ contract Films {
         return filmIds;
     }
 
+    function getAllFilmIdsOfUser(address sender)
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        bytes32[] memory userFundedFilms = new bytes32[](filmIds.length);
+        for (uint256 i = 0; i < filmIds.length; i++) {
+            if (filmIdToFilm[filmIds[i]].didUserFund(sender)) {
+                userFundedFilms[i] = filmIds[i];
+            }
+        }
+        return userFundedFilms;
+    }
+
     function fund(
         bytes32 filmId,
         uint256 value,

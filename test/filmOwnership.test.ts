@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
+import { parseBytes32String } from "@ethersproject/strings";
 
 const bytes = (string) => ethers.utils.formatBytes32String(string)
 const string = (bytes) => ethers.utils.parseBytes32String(bytes)
@@ -128,7 +129,43 @@ describe("Film ownership tests", function () {
         })).to.revertedWith("Excess fund")
     });
 
-    it("tests claiming of yield", async function () {
+    // it("tests claiming of yield", async function () {
+    //     const [deployer, addr1, addr2] = await ethers.getSigners();
+
+    //     const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
+    //     const ramaToken = await RamaTokenFactory.deploy();
+
+    //     const RamaContractFactory = await ethers.getContractFactory("RamaContract");
+    //     const ramaContract = await RamaContractFactory.deploy(ramaToken.address);
+
+    //     await ramaToken.connect(deployer).mint(ramaContract.address, 100000000000);
+
+    //     await ramaContract.addProject(
+    //         bytes("id1"),
+    //         1000,
+    //         addr1.address
+    //     )
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).fundProject(bytes("id1"), {
+    //         value: 100
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
+
+    //     await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+    //         value: 100
+    //     })
+
+    //     await new Promise(resolve => setTimeout(resolve, 4000));
+
+    //     await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
+    // });
+
+    it("tests funding of film", async function () {
         const [deployer, addr1, addr2] = await ethers.getSigners();
 
         const RamaTokenFactory = await ethers.getContractFactory("RamaToken");
@@ -145,22 +182,26 @@ describe("Film ownership tests", function () {
             addr1.address
         )
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await ramaContract.addProject(
+            bytes("id2"),
+            1000,
+            addr2.address
+        )
+
+        await ramaContract.addProject(
+            bytes("id3"),
+            1000,
+            addr2.address
+        )
 
         await ramaContract.connect(addr1).fundProject(bytes("id1"), {
             value: 100
         })
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
-        await ramaContract.connect(addr1).claimProjectRewards(bytes("id1"));
-
-        await ramaContract.connect(addr2).fundProject(bytes("id1"), {
+        await ramaContract.connect(addr1).fundProject(bytes("id2"), {
             value: 100
         })
 
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
-        await ramaContract.connect(addr2).claimProjectRewards(bytes("id1"));
+        const res = await ramaContract.connect(addr1).getAllProjectIdsOfUser();
     });
 });
