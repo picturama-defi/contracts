@@ -3,12 +3,12 @@ pragma solidity ^0.8.4;
 import "hardhat/console.sol";
 
 contract Film {
-    uint256 public targetFund;
-    uint256 public amountFundedSoFar;
-    uint256 public fundNo = 1;
-    address public filmOwner;
-    uint256 public filmStartTime;
-    uint256 public factor = 1000;
+    uint256 internal targetFund;
+    uint256 internal amountFundedSoFar;
+    uint256 internal fundNo = 1;
+    address internal filmOwner;
+    uint256 internal filmStartTime;
+    uint256 internal factor = 1000;
 
     constructor(uint256 _targetFund, address _filmOwner) {
         targetFund = _targetFund;
@@ -35,9 +35,9 @@ contract Film {
         uint256 fundedSoFar;
     }
 
-    Fund[] public funds;
+    Fund[] internal funds;
 
-    function fund(uint256 amount, address sender) public payable {
+    function fund(uint256 amount, address sender) internal {
         if (amount > getRemainingAmountToBeFunded()) {
             revert("Excess fund");
         }
@@ -74,11 +74,11 @@ contract Film {
         funds.push(newFund);
     }
 
-    function getRemainingAmountToBeFunded() public view returns (uint256) {
+    function getRemainingAmountToBeFunded() internal view returns (uint256) {
         return targetFund - amountFundedSoFar;
     }
 
-    function removeFund(address sender) public returns (uint256) {
+    function removeFund(address sender) internal returns (uint256) {
         uint256 indexOfItemToBeDeleted = findFundIndex(sender);
 
         if (funds[indexOfItemToBeDeleted].amount == 0) {
@@ -102,7 +102,7 @@ contract Film {
         return amountToWithdraw;
     }
 
-    function deleteItemInArray(uint256 index, uint256 length) public {
+    function deleteItemInArray(uint256 index, uint256 length) internal {
         if (length == 1) {
             funds.pop();
         } else {
@@ -111,7 +111,7 @@ contract Film {
         }
     }
 
-    function isAlreadyFunded(address sender) public view returns (bool) {
+    function isAlreadyFunded(address sender) internal view returns (bool) {
         for (uint256 i = 0; i < funds.length; i++) {
             if (funds[i].funder == sender) {
                 return true;
@@ -120,12 +120,12 @@ contract Film {
         return false;
     }
 
-    function getFunds() public view returns (Fund[] memory) {
+    function getFunds() internal view returns (Fund[] memory) {
         return funds;
     }
 
     function getFundOfUser(address userAddress)
-        public
+        internal
         view
         returns (UserFundDetails memory)
     {
@@ -143,11 +143,15 @@ contract Film {
         }
     }
 
-    function getFilmFundDetails() public view returns (FilmFundDetails memory) {
+    function getFilmFundDetails()
+        internal
+        view
+        returns (FilmFundDetails memory)
+    {
         return FilmFundDetails(targetFund, amountFundedSoFar);
     }
 
-    function claimYield(address sender) public view returns (uint256) {
+    function claimYield(address sender) internal view returns (uint256) {
         uint256 index = findFundIndex(sender);
         if (!funds[index].isClaimed) {
             return funds[index].claimableYield;
@@ -156,7 +160,7 @@ contract Film {
         }
     }
 
-    function findFundIndex(address sender) public view returns (uint256) {
+    function findFundIndex(address sender) internal view returns (uint256) {
         for (uint256 i = 0; i < funds.length; i++) {
             if (funds[i].funder == sender) {
                 return i;
@@ -165,7 +169,7 @@ contract Film {
         revert("Invalid request");
     }
 
-    function lockFund(address sender) public {
+    function lockFund(address sender) internal {
         uint256 index = findFundIndex(sender);
         funds[index].isClaimed = true;
         funds[index].claimableYield = 0;
