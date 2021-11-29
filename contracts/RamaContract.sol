@@ -7,12 +7,17 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Film.sol";
 import "./Films.sol";
 import "./RamaToken.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract RamaContract is Films, Ownable {
     ERC20 private ramaToken;
+    AggregatorV3Interface internal priceFeed;
 
     constructor(address tokenAddress) Films() {
         ramaToken = RamaToken(tokenAddress);
+        priceFeed = AggregatorV3Interface(
+            0x8A753747A1Fa494EC906cE90E9f37563A8AF630e
+        );
     }
 
     function addProject(
@@ -68,5 +73,10 @@ contract RamaContract is Films, Ownable {
     function withdrawFromProject(bytes32 filmId) public payable {
         uint256 amountToWithdraw = withdraw(filmId, msg.sender);
         payable(msg.sender).transfer(amountToWithdraw);
+    }
+
+    function getLatestPrice() public view returns (int256) {
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        return price;
     }
 }

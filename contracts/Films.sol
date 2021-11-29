@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import "./Film.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract Films {
     Film private film;
