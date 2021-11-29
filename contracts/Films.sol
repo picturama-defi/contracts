@@ -13,17 +13,17 @@ contract Films {
         bytes32 filmId,
         uint256 targetFund,
         address filmOwner
-    ) public {
+    ) internal {
         filmIdToFilm[filmId] = new Film(targetFund, filmOwner);
         filmIds.push(filmId);
     }
 
-    function getAllFilmIds() public view returns (bytes32[] memory) {
+    function getAllFilmIds() internal view returns (bytes32[] memory) {
         return filmIds;
     }
 
     function getUserFundedFilmIds(address sender)
-        public
+        internal
         view
         returns (bytes32[] memory)
     {
@@ -40,7 +40,7 @@ contract Films {
         bytes32 filmId,
         uint256 value,
         address sender
-    ) public returns (bool) {
+    ) internal returns (bool) {
         if (doesItemExist(filmId)) {
             filmIdToFilm[filmId].fund(value, sender);
             return true;
@@ -49,7 +49,7 @@ contract Films {
         }
     }
 
-    function removeFund(bytes32 filmId, address sender) public {
+    function removeFund(bytes32 filmId, address sender) internal {
         if (doesItemExist(filmId)) {
             filmIdToFilm[filmId].removeFund(sender);
         } else {
@@ -57,14 +57,14 @@ contract Films {
         }
     }
 
-    function getFilm(bytes32 filmId) public view returns (Film) {
+    function getFilm(bytes32 filmId) internal view returns (Film) {
         if (!doesItemExist(filmId)) {
             revert("Film does not exist");
         }
         return filmIdToFilm[filmId];
     }
 
-    function doesItemExist(bytes32 filmId) public view returns (bool) {
+    function doesItemExist(bytes32 filmId) internal view returns (bool) {
         for (uint256 i = 0; i < filmIds.length; i++) {
             if (filmIds[i] == filmId) {
                 return true;
@@ -74,7 +74,7 @@ contract Films {
     }
 
     function getFundOfUser(bytes32 filmId, address sender)
-        public
+        internal
         view
         returns (Film.UserFundDetails memory)
     {
@@ -86,14 +86,18 @@ contract Films {
     }
 
     function getFilmFundDetails(bytes32 filmId)
-        public
+        internal
         view
         returns (Film.FilmFundDetails memory)
     {
         return filmIdToFilm[filmId].getFilmFundDetails();
     }
 
-    function getFunds(bytes32 filmId) public view returns (Film.Fund[] memory) {
+    function getFunds(bytes32 filmId)
+        internal
+        view
+        returns (Film.Fund[] memory)
+    {
         if (doesItemExist(filmId)) {
             return filmIdToFilm[filmId].getFunds();
         } else {
@@ -102,7 +106,7 @@ contract Films {
     }
 
     function claimReward(bytes32 filmId, address sender)
-        public
+        internal
         view
         returns (uint256)
     {
@@ -113,7 +117,10 @@ contract Films {
         }
     }
 
-    function withdraw(bytes32 filmId, address sender) public returns (uint256) {
+    function withdraw(bytes32 filmId, address sender)
+        internal
+        returns (uint256)
+    {
         if (doesItemExist(filmId)) {
             return filmIdToFilm[filmId].removeFund(sender);
         } else {
@@ -121,7 +128,7 @@ contract Films {
         }
     }
 
-    function lockFund(bytes32 filmId, address sender) public {
+    function lockFund(bytes32 filmId, address sender) internal {
         filmIdToFilm[filmId].lockFund(sender);
     }
 }
